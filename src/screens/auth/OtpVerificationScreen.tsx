@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -17,13 +17,32 @@ export function OtpVerificationScreen({ route }: Props) {
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(60);
   const inputs = useRef<Array<TextInput | null>>([]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleResend = () => {
+    setTimer(60);
+  };
 
   const onChangeDigit = (value: string, index: number) => {
     const next = [...digits];
     next[index] = value.replace(/[^0-9]/g, '').slice(-1);
     setDigits(next);
     if (value && index < 5) inputs.current[index + 1]?.focus();
+  };
+
+  const onKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && !digits[index] && index > 0) {
+      inputs.current[index - 1]?.focus();
+    }
   };
 
   const onVerify = async () => {
@@ -51,13 +70,24 @@ export function OtpVerificationScreen({ route }: Props) {
             maxLength={1}
             value={d}
             onChangeText={(v) => onChangeDigit(v, i)}
+            onKeyPress={(e) => onKeyPress(e, i)}
           />
         ))}
       </View>
 
-      {error && <Text style={{ color: theme.danger, ...typography.caption }}>{error}</Text>}
+      {error && <Text style={{ color: theme.danger, ...typography.caption, marginBottom: spacing.sm }}>{error}</Text>}
 
-      <Button label="Verify" onPress={onVerify} loading={loading} disabled={digits.join('').length !== 6} />
+      <Button label="Verify" onPress={onVerify} loading={loading} disabled={digits.join('').length !== 6 || loading} />
+
+      <View style={{ alignItems: 'center', marginTop: spacing.md }}>
+        {timer > 0 ? (
+          <Text style={[typography.caption, { color: theme.textMuted }]}>
+            Resend code in {timer}s
+          </Text>
+        ) : (
+          <Button label="Resend Code" variant="ghost" onPress={handleResend} />
+        )}
+      </View>
     </Screen>
   );
 }

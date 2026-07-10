@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Bell, ChevronRight, CreditCard, LogOut, Settings as SettingsIcon, Sparkles, Wallet } from 'lucide-react-native';
+import { Bell, ChevronRight, CreditCard, LogOut, Settings as SettingsIcon, Sparkles, Wallet, User, Shield, Info, HelpCircle, Trash } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../theme/tokens';
 import { Screen } from '../../components/Screen';
@@ -16,11 +16,33 @@ export function ProfileScreen({ navigation }: Props) {
   const signOut = useAuthStore((s) => s.signOut);
 
   const items: Array<{ label: string; icon: React.ReactNode; onPress: () => void }> = [
-    { label: 'Wallet & credits', icon: <Wallet size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Wallet') },
+    { label: 'Edit Profile', icon: <User size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('EditProfile') },
     { label: 'Pricing plans', icon: <CreditCard size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Pricing') },
-    { label: 'Notifications', icon: <Bell size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Notifications') },
+    { label: 'Wallet & credits', icon: <Wallet size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Wallet') },
     { label: 'Settings', icon: <SettingsIcon size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Settings') },
+    { label: 'Notifications', icon: <Bell size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Notifications') },
+    { label: 'Privacy & Security', icon: <Shield size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Privacy') },
+    { label: 'About VEYTRIX', icon: <Info size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('About') },
+    { label: 'Help & Support', icon: <HelpCircle size={18} color={theme.textPrimary} />, onPress: () => navigation.navigate('Support') },
   ];
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: () => {
+            Alert.alert('Success', 'Your account has been deleted.');
+            signOut();
+          }
+        },
+      ]
+    );
+  };
 
   return (
     <Screen>
@@ -66,9 +88,14 @@ export function ProfileScreen({ navigation }: Props) {
         ))}
       </View>
 
-      <Pressable onPress={signOut} style={[styles.menuRow, { backgroundColor: theme.surface, borderColor: theme.danger + '55' }]}>
+      <Pressable onPress={signOut} style={[styles.menuRow, { backgroundColor: theme.surface, borderColor: theme.danger + '55', marginTop: spacing.md }]}>
         <LogOut size={18} color={theme.danger} />
         <Text style={[typography.bodyMedium, { color: theme.danger, flex: 1 }]}>Log out</Text>
+      </Pressable>
+
+      <Pressable onPress={handleDeleteAccount} style={[styles.menuRow, { backgroundColor: theme.surface, borderColor: theme.danger + '55', marginTop: spacing.sm }]}>
+        <Trash size={18} color={theme.danger} />
+        <Text style={[typography.bodyMedium, { color: theme.danger, flex: 1 }]}>Delete Account</Text>
       </Pressable>
     </Screen>
   );

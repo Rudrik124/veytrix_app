@@ -94,6 +94,10 @@ export function LoginScreen({ navigation }: Props) {
 
   const onLogin = async () => {
     setError(null);
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     setLoading(true);
     const res = await signInWithEmail(email.trim(), password);
     setLoading(false);
@@ -166,7 +170,7 @@ export function LoginScreen({ navigation }: Props) {
               </Text>
             </Pressable>
 
-            <Button label="Log In" onPress={onLogin} loading={loading} disabled={!email || !password} />
+            <Button label="Log In" onPress={onLogin} loading={loading} disabled={!email || !password || loading} />
 
             {/* Divider */}
             <View style={styles.dividerRow}>

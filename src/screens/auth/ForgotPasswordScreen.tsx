@@ -15,14 +15,23 @@ export function ForgotPasswordScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const sendPasswordReset = useAuthStore((s) => s.sendPasswordReset);
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const onSend = async () => {
+    setError(null);
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     setLoading(true);
-    await sendPasswordReset(email.trim());
+    const res = await sendPasswordReset(email.trim());
     setLoading(false);
-    setSent(true);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+    navigation.navigate('OtpVerification', { email: email.trim(), purpose: 'reset' });
   };
 
   return (
@@ -34,27 +43,24 @@ export function ForgotPasswordScreen({ navigation }: Props) {
         </Text>
       </View>
 
-      {sent ? (
-        <View style={[styles.notice, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={{ color: theme.textPrimary }}>Check your inbox — if that email is registered, a reset link is on its way.</Text>
+      <View style={styles.form}>
+        <View style={[styles.inputWrap, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Mail size={16} color={theme.textMuted} />
+          <TextInput
+            style={[styles.input, { color: theme.textPrimary }]}
+            placeholder="Email"
+            placeholderTextColor={theme.textMuted}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
         </View>
-      ) : (
-        <View style={styles.form}>
-          <View style={[styles.inputWrap, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Mail size={16} color={theme.textMuted} />
-            <TextInput
-              style={[styles.input, { color: theme.textPrimary }]}
-              placeholder="Email"
-              placeholderTextColor={theme.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-          <Button label="Send reset link" onPress={onSend} loading={loading} disabled={!email} />
-        </View>
-      )}
+        {error && (
+          <Text style={{ color: theme.danger, ...typography.caption }}>{error}</Text>
+        )}
+        <Button label="Send reset OTP" onPress={onSend} loading={loading} disabled={!email || loading} />
+      </View>
 
       <Button label="Back to login" variant="ghost" onPress={() => navigation.navigate('Login')} />
     </Screen>

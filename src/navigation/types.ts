@@ -34,10 +34,14 @@ export type DownloadsStackParamList = {
 
 export type ProfileStackParamList = {
   ProfileMain: undefined;
+  EditProfile: undefined;
   Settings: undefined;
   Wallet: undefined;
   Pricing: undefined;
   Notifications: undefined;
+  Privacy: undefined;
+  About: undefined;
+  Support: undefined;
 };
 
 export type MainTabParamList = {

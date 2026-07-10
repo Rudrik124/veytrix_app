@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { palette, radius, spacing, typography } from '../../theme/tokens';
 import { Button } from '../../components/Button';
@@ -86,17 +86,23 @@ export function SignupScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const signUpWithEmail = useAuthStore((s) => s.signUpWithEmail);
   const signInWithOAuth = useAuthStore((s) => s.signInWithOAuth);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const onSignup = async () => {
     setError(null);
+    if (!name.trim()) { setError('Please enter your name.'); return; }
+    if (!email.trim() || !email.includes('@')) { setError('Please enter a valid email address.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+    
     setLoading(true);
-    const res = await signUpWithEmail(email.trim(), password);
+    const res = await signUpWithEmail(name.trim(), email.trim(), password);
     setLoading(false);
     if (res.error) { setError(res.error); return; }
     analytics.logEvent('sign_up');
@@ -125,6 +131,19 @@ export function SignupScreen({ navigation }: Props) {
         {/* Glowing card */}
         <GlowCard bg={cardBg}>
           <View style={styles.form}>
+
+            {/* Name */}
+            <View style={[styles.inputWrap, { backgroundColor: inputBg, borderColor: inputBorder }]}>
+              <User size={16} color={theme.textMuted} />
+              <TextInput
+                style={[styles.input, { color: theme.textPrimary }]}
+                placeholder="Full Name"
+                placeholderTextColor={theme.textMuted}
+                autoCapitalize="words"
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
 
             {/* Email */}
             <View style={[styles.inputWrap, { backgroundColor: inputBg, borderColor: inputBorder }]}>
@@ -158,11 +177,24 @@ export function SignupScreen({ navigation }: Props) {
               </Pressable>
             </View>
 
+            {/* Confirm Password */}
+            <View style={[styles.inputWrap, { backgroundColor: inputBg, borderColor: inputBorder }]}>
+              <Lock size={16} color={theme.textMuted} />
+              <TextInput
+                style={[styles.input, { color: theme.textPrimary }]}
+                placeholder="Confirm Password"
+                placeholderTextColor={theme.textMuted}
+                secureTextEntry={!showPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+            </View>
+
             {error && (
               <Text style={{ color: theme.danger, ...typography.caption }}>{error}</Text>
             )}
 
-            <Button label="Sign Up" onPress={onSignup} loading={loading} disabled={!email || !password} />
+            <Button label="Sign Up" onPress={onSignup} loading={loading} disabled={!name || !email || !password || !confirmPassword || loading} />
 
             {/* Divider */}
             <View style={styles.dividerRow}>
