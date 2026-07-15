@@ -8,7 +8,7 @@ interface Props {
   scroll?: boolean;
   style?: ViewStyle;
   edges?: Array<'top' | 'bottom' | 'left' | 'right'>;
-  refreshControl?: React.ReactElement;
+  refreshControl?: React.ReactElement<any>;
 }
 
 export function Screen({ children, scroll = true, style, edges = ['top'], refreshControl }: Props) {

@@ -4,6 +4,7 @@ import { Check } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../theme/tokens';
 import { Screen } from '../../components/Screen';
+import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { PLANS } from '../../constants';
 import { useAuthStore } from '../../store/authStore';
@@ -29,7 +30,8 @@ export function PricingScreen() {
 
   return (
     <Screen>
-      <Text style={[typography.display, { color: theme.textPrimary }]}>Pricing</Text>
+      <Header />
+      <Text style={[typography.display, { color: theme.textPrimary }]}>Upgrade</Text>
       <Text style={[typography.body, { color: theme.textMuted, marginTop: -spacing.sm }]}>Upgrade for more credits and faster generation.</Text>
 
       {PLANS.filter((p) => p.id !== 'free').map((plan) => {

@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 let Notifications: any = null;
@@ -48,7 +49,9 @@ export async function registerForPushNotifications(userId: string): Promise<stri
       });
     }
 
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? '00000000-0000-0000-0000-000000000000';
+    
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     if (isSupabaseConfigured) {
       await supabase.from('devices').upsert({ user_id: userId, push_token: token, platform: Platform.OS });
     }

@@ -58,7 +58,6 @@ export const useCreditStore = create<CreditState>((set, get) => ({
     // can't double-spend the same balance (see backend architecture doc).
     const { error } = await supabase.rpc('deduct_credits', { p_user_id: userId, p_amount: amount, p_description: description });
     if (error) return { error: error.message };
-    await useAuthStore.getState().refreshProfile();
     await get().fetchTransactions(userId);
     return { error: null };
   },
@@ -80,7 +79,6 @@ export const useCreditStore = create<CreditState>((set, get) => ({
     }
     const { error } = await supabase.rpc('add_credits', { p_user_id: userId, p_amount: amount, p_description: description });
     if (error) return { error: error.message };
-    await useAuthStore.getState().refreshProfile();
     await get().fetchTransactions(userId);
     return { error: null };
   },

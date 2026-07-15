@@ -25,7 +25,7 @@ export function GenerationProgressScreen({ route, navigation }: Props) {
   const { projectId } = route.params;
   const { theme } = useTheme();
   const project = useRealtimeProject(projectId);
-  const removeProject = useProjectStore((s) => s.removeProject);
+  const deleteProject = useProjectStore((s) => s.deleteProject);
   const reportedDone = useRef(false);
   const [paused, setPaused] = useState(false);
 
@@ -109,7 +109,7 @@ export function GenerationProgressScreen({ route, navigation }: Props) {
                   label="Delete"
                   variant="danger"
                   icon={<Trash2 size={16} color={theme.danger} />}
-                  onPress={() => { removeProject(project.id); navigation.popToTop(); }}
+                  onPress={() => { deleteProject(project.id); navigation.popToTop(); }}
                 />
               </View>
             </View>
@@ -117,7 +117,7 @@ export function GenerationProgressScreen({ route, navigation }: Props) {
         ) : isFailed ? (
           <Button label="Back to Create" variant="secondary" onPress={() => navigation.popToTop()} />
         ) : (
-          <Button label="Cancel generation" variant="danger" onPress={() => { removeProject(project.id); navigation.popToTop(); }} />
+          <Button label="Cancel generation" variant="danger" onPress={() => { deleteProject(project.id); navigation.popToTop(); }} />
         )}
       </View>
     </Screen>

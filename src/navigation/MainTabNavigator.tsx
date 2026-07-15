@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -109,6 +110,19 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
 
+  const activeRoute = state.routes[state.index];
+  const focusedName = getFocusedRouteNameFromRoute(activeRoute);
+
+  // Hide tab bar on full-screen editing / generation pages
+  if (
+    focusedName === 'ManualEditorWorkspace' ||
+    focusedName === 'ManualEditorProcessing' ||
+    focusedName === 'ManualEditorPreview' ||
+    focusedName === 'GenerationProgress'
+  ) {
+    return null;
+  }
+
   const containerWidth = width;
   const tabWidth = containerWidth / 5;
   const bottomPadding = insets.bottom;
@@ -209,7 +223,16 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             });
 
             if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
+              if (route.name === 'ProfileTab') {
+                navigation.navigate('ProfileTab', { screen: 'ProfileMain' });
+              } else {
+                navigation.navigate(route.name);
+              }
+            } else if (isFocused && !event.defaultPrevented) {
+              // Optional: reset to root if tapping the active tab again
+              if (route.name === 'ProfileTab') {
+                navigation.navigate('ProfileTab', { screen: 'ProfileMain' });
+              }
             }
           };
 

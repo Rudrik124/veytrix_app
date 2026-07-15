@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Gift, Zap } from 'lucide-react-native';
+import { Gift, Zap, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../theme/tokens';
 import { Screen } from '../../components/Screen';
+import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { useAuthStore } from '../../store/authStore';
@@ -51,7 +52,8 @@ export function WalletScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen scroll={false}>
+    <Screen scroll={true}>
+      <Header />
       <Text style={[typography.display, { color: theme.textPrimary }]}>Wallet</Text>
 
       <LinearGradient colors={theme.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceCard}>
@@ -84,24 +86,31 @@ export function WalletScreen({ navigation }: Props) {
         <Button label="Apply" fullWidth={false} onPress={onApplyPromo} disabled={!promo.trim()} />
       </View>
 
-      <Text style={[typography.h2, { color: theme.textPrimary }]}>Transaction history</Text>
-      <FlatList
-        data={transactions}
-        keyExtractor={(t) => t.id}
-        contentContainerStyle={{ gap: spacing.xs, paddingBottom: spacing.xxxl }}
-        ListEmptyComponent={<EmptyState icon={<Zap size={28} color={theme.textMuted} />} title="No transactions yet" body="Recharges and spends will show up here." />}
-        renderItem={({ item }) => (
-          <View style={[styles.txRow, { borderColor: theme.border }]}>
-            <View style={{ flex: 1 }}>
-              <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{item.description}</Text>
-              <Text style={[typography.caption, { color: theme.textMuted }]}>{new Date(item.createdAt).toLocaleString()}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md, marginBottom: spacing.xs }}>
+        <Text style={[typography.h2, { color: theme.textPrimary }]}>Recent transactions</Text>
+        <Pressable onPress={() => navigation.navigate('TransactionHistory')} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[typography.bodyMedium, { color: theme.textMuted }]}>View All</Text>
+          <ChevronRight size={16} color={theme.textMuted} style={{ marginLeft: 2 }} />
+        </Pressable>
+      </View>
+
+      <View style={{ gap: spacing.xs, paddingBottom: spacing.xxxl }}>
+        {transactions.length === 0 ? (
+          <EmptyState icon={<Zap size={28} color={theme.textMuted} />} title="No transactions yet" body="Recharges and spends will show up here." />
+        ) : (
+          transactions.slice(0, 2).map((item) => (
+            <View key={item.id} style={[styles.txRow, { borderColor: theme.border }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{item.description}</Text>
+                <Text style={[typography.caption, { color: theme.textMuted }]}>{new Date(item.createdAt).toLocaleString()}</Text>
+              </View>
+              <Text style={[typography.bodyMedium, { color: item.amount >= 0 ? theme.success : theme.danger }]}>
+                {item.amount >= 0 ? '+' : ''}{item.amount}
+              </Text>
             </View>
-            <Text style={[typography.bodyMedium, { color: item.amount >= 0 ? theme.success : theme.danger }]}>
-              {item.amount >= 0 ? '+' : ''}{item.amount}
-            </Text>
-          </View>
+          ))
         )}
-      />
+      </View>
     </Screen>
   );
 }

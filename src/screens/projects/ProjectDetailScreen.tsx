@@ -1,76 +1,244 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import type { CompositeScreenProps } from '@react-navigation/native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { Copy, Trash2, Wand2 } from 'lucide-react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { radius, spacing, typography } from '../../theme/tokens';
-import { Screen } from '../../components/Screen';
-import { Button } from '../../components/Button';
-import { StatusBadge } from '../../components/StatusBadge';
-import { useProjectStore } from '../../store/projectStore';
-import type { ProjectsStackParamList, MainTabParamList } from '../../navigation/types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeft, MoreVertical, Play, Clock, Video, FileVideo, Calendar, History, RotateCcw } from 'lucide-react-native';
 
-type Props = CompositeScreenProps<
-  NativeStackScreenProps<ProjectsStackParamList, 'ProjectDetail'>,
-  BottomTabScreenProps<MainTabParamList>
->;
+import { useTheme } from '../../theme/ThemeProvider';
+import { typography, spacing, radius } from '../../theme/tokens';
+import type { CreateStackParamList } from '../../navigation/types';
+import { useProjectStore } from '../../store/projectStore';
+import { ProjectService } from '../../services/projectService';
+
+type Props = NativeStackScreenProps<CreateStackParamList, 'ProjectDetail'>;
 
 export function ProjectDetailScreen({ route, navigation }: Props) {
-  const { projectId } = route.params;
   const { theme } = useTheme();
-  const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
-  const duplicateProject = useProjectStore((s) => s.duplicateProject);
-  const removeProject = useProjectStore((s) => s.removeProject);
+  const insets = useSafeAreaInsets();
+  const { projectId } = route.params;
+
+  const projects = useProjectStore(state => state.projects);
+  const project = useMemo(() => projects.find(p => p.id === projectId), [projects, projectId]);
 
   if (!project) {
     return (
-      <Screen>
-        <Text style={{ color: theme.textMuted }}>This project is no longer available.</Text>
-      </Screen>
+      <View style={[styles.container, { backgroundColor: theme.bg, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={[typography.body, { color: '#EF4444' }]}>Project not found.</Text>
+        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
+          <Text style={{ color: '#38DDF8' }}>Go Back</Text>
+        </Pressable>
+      </View>
     );
   }
 
+  const handleRestore = (versionId: string) => {
+    Alert.alert(
+      "Restore Version",
+      "Are you sure you want to restore this version? This will become your active draft.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Restore", 
+          onPress: async () => {
+            await ProjectService.restoreVersion(project.id, versionId);
+            Alert.alert("Restored", "Version has been restored successfully.");
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <Screen>
-      <View style={[styles.preview, { backgroundColor: theme.surfaceAlt }]} />
-      <View style={styles.headerRow}>
-        <Text style={[typography.h1, { color: theme.textPrimary, flex: 1 }]} numberOfLines={2}>
-          {project.prompt || 'Untitled project'}
+    <View style={[styles.container, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
+          <ChevronLeft size={24} color={theme.textPrimary} />
+        </Pressable>
+        <Text style={[typography.h2, { color: theme.textPrimary }]} numberOfLines={1}>
+          Project Details
         </Text>
-        <StatusBadge status={project.status} />
+        <Pressable style={styles.iconBtn}>
+          <MoreVertical size={24} color={theme.textPrimary} />
+        </Pressable>
       </View>
 
-      <View style={[styles.metaCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[typography.caption, { color: theme.textMuted }]}>Type</Text>
-        <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{project.type.replace(/_/g, ' ')}</Text>
-        <Text style={[typography.caption, { color: theme.textMuted, marginTop: spacing.sm }]}>Credits spent</Text>
-        <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{project.creditsCost}</Text>
-        {project.errorMessage && (
-          <>
-            <Text style={[typography.caption, { color: theme.textMuted, marginTop: spacing.sm }]}>Error</Text>
-            <Text style={[typography.bodyMedium, { color: theme.danger }]}>{project.errorMessage}</Text>
-          </>
-        )}
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        
+        {/* Large Thumbnail */}
+        <View style={styles.thumbnailContainer}>
+          <View style={[styles.thumbnail, { backgroundColor: theme.surfaceAlt }]}>
+            <Play size={48} color={theme.textMuted} />
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: project.status === 'completed' ? 'rgba(56, 221, 248, 0.2)' : 'rgba(139, 92, 246, 0.2)' }]}>
+            <Text style={[typography.caption, { color: project.status === 'completed' ? '#38DDF8' : '#8B5CF6', fontWeight: 'bold' }]}>
+              {project.status.toUpperCase()}
+            </Text>
+          </View>
+        </View>
 
-      {(project.status === 'draft' || project.type === 'manual_edit') && (
-        <Button label="Continue editing" icon={<Wand2 size={16} color="#0b0c10" />} onPress={() => navigation.getParent()?.navigate('CreateTab', { screen: 'ManualEdit', params: { projectId: project.id } } as never)} />
-      )}
-      <Button label="Duplicate" variant="secondary" icon={<Copy size={16} color={theme.textPrimary} />} onPress={() => duplicateProject(project.id)} />
-      <Button
-        label="Delete"
-        variant="danger"
-        icon={<Trash2 size={16} color={theme.danger} />}
-        onPress={() => { removeProject(project.id); navigation.goBack(); }}
-      />
-    </Screen>
+        {/* Info Box */}
+        <View style={styles.section}>
+          <Text style={[typography.h2, { color: theme.textPrimary, marginBottom: spacing.xs }]}>{project.name}</Text>
+          
+          <View style={[styles.infoGrid, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+            
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Clock size={16} color={theme.textMuted} />
+                <Text style={[typography.caption, { color: theme.textSecondary, marginLeft: 8 }]}>Duration</Text>
+              </View>
+              <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{project.duration}</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Video size={16} color={theme.textMuted} />
+                <Text style={[typography.caption, { color: theme.textSecondary, marginLeft: 8 }]}>Resolution</Text>
+              </View>
+              <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{project.resolution}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <FileVideo size={16} color={theme.textMuted} />
+                <Text style={[typography.caption, { color: theme.textSecondary, marginLeft: 8 }]}>File Size</Text>
+              </View>
+              <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>{project.fileSize}</Text>
+            </View>
+
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <View style={styles.infoItem}>
+                <Calendar size={16} color={theme.textMuted} />
+                <Text style={[typography.caption, { color: theme.textSecondary, marginLeft: 8 }]}>Last Modified</Text>
+              </View>
+              <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>
+                {new Date(project.updatedAt).toLocaleDateString()}
+              </Text>
+            </View>
+
+          </View>
+        </View>
+
+        {/* AI Prompt */}
+        <View style={styles.section}>
+          <Text style={[typography.h2, { color: theme.textPrimary, marginBottom: spacing.md }]}>AI Prompt</Text>
+          <View style={[styles.promptBox, { backgroundColor: 'rgba(56, 221, 248, 0.05)', borderColor: 'rgba(56, 221, 248, 0.2)' }]}>
+            <Text style={[typography.body, { color: theme.textPrimary }]}>
+              {project.aiPrompt || "No prompt provided."}
+            </Text>
+          </View>
+        </View>
+
+        {/* Version History */}
+        <View style={styles.section}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md }}>
+            <History size={20} color={theme.textPrimary} />
+            <Text style={[typography.h2, { color: theme.textPrimary }]}>Version History</Text>
+          </View>
+
+          {project.versionHistory.map((version) => (
+            <View key={version.id} style={[styles.versionRow, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>Version {version.versionNumber}</Text>
+                <Text style={[typography.caption, { color: theme.textSecondary }]}>{version.description}</Text>
+                <Text style={[typography.tiny, { color: theme.textMuted, marginTop: 4 }]}>
+                  {new Date(version.createdAt).toLocaleString()}
+                </Text>
+              </View>
+              
+              <Pressable onPress={() => handleRestore(version.id)} style={[styles.restoreBtn, { backgroundColor: 'rgba(56, 221, 248, 0.1)' }]}>
+                <RotateCcw size={16} color="#38DDF8" />
+                <Text style={[typography.caption, { color: '#38DDF8', marginLeft: 6 }]}>Restore</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  preview: { height: 220, borderRadius: radius.lg },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  metaCard: { borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg },
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  thumbnailContainer: {
+    position: 'relative',
+    margin: spacing.xl,
+    marginTop: spacing.sm,
+  },
+  thumbnail: {
+    width: '100%',
+    aspectRatio: 16/9,
+    borderRadius: radius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    position: 'absolute',
+    bottom: spacing.md,
+    left: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  section: {
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  infoGrid: {
+    borderRadius: radius.md,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginTop: spacing.sm,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  promptBox: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  versionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: spacing.sm,
+  },
+  restoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  }
 });

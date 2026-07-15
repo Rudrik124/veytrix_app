@@ -4,7 +4,9 @@ import { AlertCircle, Bell, CreditCard, Megaphone, ShieldCheck, Wrench } from 'l
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../theme/tokens';
 import { Screen } from '../../components/Screen';
+import { Header } from '../../components/Header';
 import { EmptyState } from '../../components/EmptyState';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 import type { NotificationCategory } from '../../types';
@@ -19,6 +21,7 @@ const CATEGORY_ICON: Record<NotificationCategory, typeof Bell> = {
 
 export function NotificationsScreen() {
   const { theme } = useTheme();
+  const navigation = useNavigation();
   const user = useAuthStore((s) => s.user);
   const notifications = useUiStore((s) => s.notifications);
   const fetchNotifications = useUiStore((s) => s.fetchNotifications);
@@ -29,7 +32,11 @@ export function NotificationsScreen() {
 
   return (
     <Screen scroll={false}>
-      <Text style={[typography.display, { color: theme.textPrimary }]}>Notifications</Text>
+      <Header onBack={() => {
+        // @ts-ignore
+        navigation.getParent()?.navigate('ProfileTab', { screen: 'ProfileMain' }) || navigation.navigate('ProfileMain')
+      }} />
+      <Text style={[typography.display, { color: theme.textPrimary, marginHorizontal: spacing.md }]}>Notifications</Text>
       <FlatList
         data={notifications}
         keyExtractor={(n) => n.id}

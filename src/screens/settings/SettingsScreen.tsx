@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-import { ChevronRight, Globe, Lock, Moon, ShieldCheck, Sun, Trash2 } from 'lucide-react-native';
+import { ChevronRight, Lock, Moon, ShieldCheck, Sun, Trash2 } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../theme/tokens';
 import { Screen } from '../../components/Screen';
+import { Header } from '../../components/Header';
 import { useAuthStore } from '../../store/authStore';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ProfileStackParamList } from '../../navigation/types';
+
+type Props = NativeStackScreenProps<ProfileStackParamList, 'Settings'>;
 
 function ToggleSwitch({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   const { theme } = useTheme();
@@ -18,11 +23,9 @@ function ToggleSwitch({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   );
 }
 
-export function SettingsScreen() {
+export function SettingsScreen({ navigation }: Props) {
   const { theme, mode, setMode } = useTheme();
   const signOut = useAuthStore((s) => s.signOut);
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
 
   const confirmDeleteAccount = () => {
     Alert.alert(
@@ -37,6 +40,7 @@ export function SettingsScreen() {
 
   return (
     <Screen>
+      <Header />
       <Text style={[typography.display, { color: theme.textPrimary }]}>Settings</Text>
 
       <Text style={[typography.caption, { color: theme.textMuted }]}>Appearance</Text>
@@ -46,34 +50,19 @@ export function SettingsScreen() {
         <ToggleSwitch on={mode !== 'light'} onToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
       </View>
 
-      <Text style={[typography.caption, { color: theme.textMuted }]}>Preferences</Text>
-      <Pressable style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Globe size={18} color={theme.textPrimary} />
-        <Text style={[typography.bodyMedium, { color: theme.textPrimary, flex: 1 }]}>Language</Text>
-        <Text style={{ color: theme.textMuted }}>English</Text>
-        <ChevronRight size={16} color={theme.textMuted} />
-      </Pressable>
-      <View style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[typography.bodyMedium, { color: theme.textPrimary, flex: 1 }]}>Push notifications</Text>
-        <ToggleSwitch on={pushEnabled} onToggle={() => setPushEnabled((v) => !v)} />
-      </View>
-      <View style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[typography.bodyMedium, { color: theme.textPrimary, flex: 1 }]}>Share usage analytics</Text>
-        <ToggleSwitch on={analyticsEnabled} onToggle={() => setAnalyticsEnabled((v) => !v)} />
-      </View>
 
       <Text style={[typography.caption, { color: theme.textMuted }]}>Account & security</Text>
-      <Pressable style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <Pressable onPress={() => navigation.navigate('ChangePassword')} style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Lock size={18} color={theme.textPrimary} />
         <Text style={[typography.bodyMedium, { color: theme.textPrimary, flex: 1 }]}>Change password</Text>
         <ChevronRight size={16} color={theme.textMuted} />
       </Pressable>
-      <Pressable style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <Pressable onPress={() => navigation.navigate('Privacy')} style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <ShieldCheck size={18} color={theme.textPrimary} />
         <Text style={[typography.bodyMedium, { color: theme.textPrimary, flex: 1 }]}>Privacy & security</Text>
         <ChevronRight size={16} color={theme.textMuted} />
       </Pressable>
-      <Pressable style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <Pressable onPress={() => navigation.navigate('About')} style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={[typography.bodyMedium, { color: theme.textPrimary, flex: 1 }]}>About VEYTRIX</Text>
         <ChevronRight size={16} color={theme.textMuted} />
       </Pressable>

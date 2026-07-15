@@ -18,10 +18,11 @@ export function OtpVerificationScreen({ route }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(60);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputs = useRef<Array<TextInput | null>>([]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (timer > 0) {
       interval = setInterval(() => setTimer((t) => t - 1), 1000);
     }

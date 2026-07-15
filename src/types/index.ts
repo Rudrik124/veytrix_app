@@ -7,6 +7,11 @@ export interface UserProfile {
   avatarUrl: string | null;
   plan: PlanTier;
   credits: number;
+  dob?: string | null;
+  gender?: string | null;
+  phone?: string | null;
+  bio?: string | null;
+  location?: string | null;
   createdAt: string;
 }
 
@@ -80,3 +85,5 @@ export interface Announcement {
   description: string;
   date: string;
 }
+
+export * from './export';

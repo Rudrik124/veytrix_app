@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { Bell, Film, ImageIcon, Sparkles, TrendingUp, Wallet, Wand2, Clock, AlertCircle, RefreshCw } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
+import { CommonActions } from '@react-navigation/native';
 import { radius, spacing, typography } from '../../theme/tokens';
 import { Screen } from '../../components/Screen';
 import { CreditPill } from '../../components/CreditPill';
@@ -35,7 +36,12 @@ export function HomeScreen({ navigation }: Props) {
   }, [fetchDashboard]);
 
   const goCreate = (screen: keyof CreateStackParamList) => {
-    navigation.getParent()?.navigate('CreateTab', { screen } as never);
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'CreateTab',
+        params: { screen },
+      })
+    );
   };
 
   const goWallet = () => {
@@ -59,7 +65,7 @@ export function HomeScreen({ navigation }: Props) {
     return (
       <Screen>
         <View style={styles.centerAll}>
-          <ActivityIndicator size="large" color={theme.primary} />
+          <ActivityIndicator size="large" color={'#38DDF8'} />
           <Text style={[typography.body, { color: theme.textMuted, marginTop: spacing.md }]}>Loading dashboard...</Text>
         </View>
       </Screen>
@@ -68,7 +74,7 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <Screen 
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshDashboard} tintColor={theme.primary} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshDashboard} tintColor={'#38DDF8'} />}
     >
       <View style={styles.headerRow}>
         <View>
@@ -90,8 +96,8 @@ export function HomeScreen({ navigation }: Props) {
         <Pressable onPress={goWallet} style={[styles.walletCard, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
           <View style={styles.walletHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-              <Wallet size={16} color={theme.primary} />
-              <Text style={[typography.bodyMedium, { color: theme.primary }]}>Wallet Balance</Text>
+              <Wallet size={16} color={'#38DDF8'} />
+              <Text style={[typography.bodyMedium, { color: '#38DDF8' }]}>Wallet Balance</Text>
             </View>
             <Text style={[typography.h2, { color: theme.textPrimary }]}>{walletSummary.currentBalance} Cr</Text>
           </View>
@@ -107,25 +113,6 @@ export function HomeScreen({ navigation }: Props) {
       )}
 
       <View style={styles.actionsGrid}>
-        <BigActionCard
-          title="Generate Video"
-          subtitle="Prompt to video"
-          icon={<Sparkles size={20} color="#0b0c10" />}
-          featured
-          onPress={() => goCreate('AIVideoGeneration')}
-        />
-        <BigActionCard
-          title="Image to Video"
-          subtitle="Animate a photo"
-          icon={<ImageIcon size={18} color={theme.accentAlt} />}
-          onPress={() => goCreate('ImageToVideo')}
-        />
-        <BigActionCard
-          title="Reference Video"
-          subtitle="Restyle a clip"
-          icon={<Film size={18} color={theme.accentAlt} />}
-          onPress={() => goCreate('ReferenceVideo')}
-        />
         <BigActionCard
           title="Manual Edit"
           subtitle="Trim, filter, export"
@@ -170,15 +157,14 @@ export function HomeScreen({ navigation }: Props) {
           showsHorizontalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => goCreate(item.type === 'text_to_video' ? 'AIVideoGeneration' : item.type === 'image_to_video' ? 'ImageToVideo' : 'ReferenceVideo')}
+            <View
               style={[styles.templateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
             >
               <View style={[styles.templateThumb, { backgroundColor: theme.surfaceAlt }]} />
               <Text style={[typography.bodyMedium, { color: theme.textPrimary, marginTop: spacing.sm }]} numberOfLines={2}>
                 {item.title}
               </Text>
-            </Pressable>
+            </View>
           )}
         />
       )}

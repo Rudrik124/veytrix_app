@@ -15,10 +15,8 @@ export type HomeStackParamList = {
 
 export type CreateStackParamList = {
   CreateHome: undefined;
-  AIVideoGeneration: undefined;
-  ImageToVideo: undefined;
-  ReferenceVideo: undefined;
-  ManualEdit: { projectId?: string } | undefined;
+  ManualEdit: undefined;
+  ManualEditorWorkspace: undefined;
   GenerationProgress: { projectId: string; type: ProjectType };
   ProjectDetail: { projectId: string };
 };
@@ -30,6 +28,9 @@ export type ProjectsStackParamList = {
 
 export type DownloadsStackParamList = {
   DownloadsMain: undefined;
+  ExportPreview: { exportId: string };
+  ExportQueue: undefined;
+  ExportSettings: undefined;
 };
 
 export type ProfileStackParamList = {
@@ -42,6 +43,8 @@ export type ProfileStackParamList = {
   Privacy: undefined;
   About: undefined;
   Support: undefined;
+  TransactionHistory: undefined;
+  ChangePassword: undefined;
 };
 
 export type MainTabParamList = {

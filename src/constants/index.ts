@@ -21,24 +21,19 @@ export const VIDEO_STYLES = ['Cinematic', 'Anime', 'Realistic', 'Claymation', '3
 
 export const ONBOARDING_SLIDES = [
   {
-    key: 'text_to_video',
-    title: 'AI Video Generation',
-    body: 'Describe a scene in plain words and VEYTRIX renders it as video — no camera, no crew.',
+    key: 'workspace',
+    title: 'Your Creative Workspace',
+    body: 'Everything begins in one organized space where your media, timeline, and tools work together naturally.',
   },
   {
-    key: 'image_to_video',
-    title: 'Image to Video',
-    body: 'Bring a still photo to life. Upload an image and animate it with a prompt.',
+    key: 'distraction_free',
+    title: 'Edit Without Distractions',
+    body: 'Focus on your creativity with an interface designed to make every adjustment feel effortless and intuitive.',
   },
   {
-    key: 'reference_video',
-    title: 'Reference Video Editing',
-    body: "Upload a reference clip and let AI restyle motion, mood, or subject while keeping the structure.",
-  },
-  {
-    key: 'manual_edit',
-    title: 'AI Manual Edit',
-    body: 'Trim, grade, and add transitions yourself with fast on-device tools when you want full control.',
+    key: 'seamless_workflow',
+    title: 'Bring Every Idea Together',
+    body: 'Preview, refine, and complete your project in one seamless creative workflow built for speed and precision.',
   },
 ];
 
