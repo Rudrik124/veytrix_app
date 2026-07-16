@@ -110,6 +110,34 @@ const SeamlessWorkflowIllustration = ({ animValue, index, width }: { animValue: 
 
 const Illustrations = [WorkspaceIllustration, DistractionFreeIllustration, SeamlessWorkflowIllustration];
 
+function PaginationDot({ index, scrollX, pageWidth }: { index: number; scrollX: SharedValue<number>; pageWidth: number }) {
+  const dotStyle = useAnimatedStyle(() => {
+    const dotWidth = interpolate(
+      scrollX.value,
+      [(index - 1) * pageWidth, index * pageWidth, (index + 1) * pageWidth],
+      [8, 24, 8],
+      Extrapolation.CLAMP
+    );
+    const opacity = interpolate(
+      scrollX.value,
+      [(index - 1) * pageWidth, index * pageWidth, (index + 1) * pageWidth],
+      [0.3, 1, 0.3],
+      Extrapolation.CLAMP
+    );
+    return { width: dotWidth, opacity };
+  });
+
+  return <Animated.View style={[paginationStyles.dot, dotStyle]} />;
+}
+
+const paginationStyles = StyleSheet.create({
+  dot: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.secondary,
+  },
+});
+
 export function OnboardingScreen() {
   const setOnboarded = useAuthStore((s) => s.setOnboarded);
   const scrollX = useSharedValue(0);
@@ -181,25 +209,9 @@ export function OnboardingScreen() {
       {/* Footer Area */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom + 16, 32) }]}>
         <View style={styles.pagination}>
-          {ONBOARDING_SLIDES.map((_, i) => {
-            const dotStyle = useAnimatedStyle(() => {
-              const dotWidth = interpolate(
-                scrollX.value,
-                [(i - 1) * width, i * width, (i + 1) * width],
-                [8, 24, 8],
-                Extrapolation.CLAMP
-              );
-              const opacity = interpolate(
-                scrollX.value,
-                [(i - 1) * width, i * width, (i + 1) * width],
-                [0.3, 1, 0.3],
-                Extrapolation.CLAMP
-              );
-              return { width: dotWidth, opacity };
-            });
-
-            return <Animated.View key={i} style={[styles.dot, dotStyle]} />;
-          })}
+          {ONBOARDING_SLIDES.map((_, i) => (
+            <PaginationDot key={i} index={i} scrollX={scrollX} pageWidth={width} />
+          ))}
         </View>
 
         <Pressable onPress={nextSlide}>

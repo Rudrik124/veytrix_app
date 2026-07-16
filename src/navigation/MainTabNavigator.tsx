@@ -106,6 +106,124 @@ function TabBarBackground({ width, height, activeIndexValue, theme }: TabBarBack
   );
 }
 
+function BubbleIcon({
+  index,
+  routeKey,
+  routeName,
+  activeIndexValue,
+  mode,
+  theme,
+}: {
+  index: number;
+  routeKey: string;
+  routeName: string;
+  activeIndexValue: SharedValue<number>;
+  mode: string;
+  theme: any;
+}) {
+  const Icon = ROUTE_ICONS[routeName];
+  const uasBubbleIcon = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      activeIndexValue.value,
+      [index - 0.5, index, index + 0.5],
+      [0, 1, 0],
+      'clamp'
+    );
+    const scale = interpolate(
+      activeIndexValue.value,
+      [index - 0.5, index, index + 0.5],
+      [0.5, 1, 0.5],
+      'clamp'
+    );
+    return {
+      position: 'absolute' as const,
+      opacity,
+      transform: [{ scale }],
+    };
+  });
+
+  return (
+    <Animated.View key={`bubble-icon-${routeKey}`} style={[uasBubbleIcon, styles.bubbleIconWrapper]}>
+      {mode === 'light' ? (
+        <Icon size={TAB_BAR_CONFIG.btnIconSize} color="#ffffff" />
+      ) : (
+        <LinearGradient
+          colors={theme.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientWrapper}
+        >
+          <Icon size={TAB_BAR_CONFIG.btnIconSize} color={palette.ink950} />
+        </LinearGradient>
+      )}
+    </Animated.View>
+  );
+}
+
+function TabItem({
+  index,
+  routeKey,
+  routeName,
+  isFocused,
+  activeIndexValue,
+  theme,
+  onPress,
+}: {
+  index: number;
+  routeKey: string;
+  routeName: string;
+  isFocused: boolean;
+  activeIndexValue: SharedValue<number>;
+  theme: any;
+  onPress: () => void;
+}) {
+  const Icon = ROUTE_ICONS[routeName];
+  const label = ROUTE_LABELS[routeName];
+
+  const uasTabContent = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      activeIndexValue.value,
+      [index - 0.5, index, index + 0.5],
+      [1, 0, 1],
+      'clamp'
+    );
+    const scale = interpolate(
+      activeIndexValue.value,
+      [index - 0.5, index, index + 0.5],
+      [1, 0.7, 1],
+      'clamp'
+    );
+    const translateY = interpolate(
+      activeIndexValue.value,
+      [index - 0.5, index, index + 0.5],
+      [0, 12, 0],
+      'clamp'
+    );
+    return {
+      opacity,
+      transform: [{ scale }, { translateY }],
+    };
+  });
+
+  return (
+    <Pressable
+      key={routeKey}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.tabButton,
+        { opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      <Animated.View style={[styles.tabContent, uasTabContent]}>
+        <Icon size={TAB_BAR_CONFIG.iconSize} color={theme.textMuted} />
+        <Text style={[styles.tabLabel, { color: theme.textMuted }]}>
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
@@ -167,47 +285,17 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           },
         ]}
       >
-        {state.routes.map((route, i) => {
-          const Icon = ROUTE_ICONS[route.name];
-
-          // Cross-fade opacity of the icon inside the bubble based on slide progress
-          const uasBubbleIcon = useAnimatedStyle(() => {
-            const opacity = interpolate(
-              activeIndexValue.value,
-              [i - 0.5, i, i + 0.5],
-              [0, 1, 0],
-              'clamp'
-            );
-            const scale = interpolate(
-              activeIndexValue.value,
-              [i - 0.5, i, i + 0.5],
-              [0.5, 1, 0.5],
-              'clamp'
-            );
-            return {
-              position: 'absolute',
-              opacity,
-              transform: [{ scale }],
-            };
-          });
-
-          return (
-            <Animated.View key={`bubble-icon-${route.key}`} style={[uasBubbleIcon, styles.bubbleIconWrapper]}>
-              {mode === 'light' ? (
-                <Icon size={TAB_BAR_CONFIG.btnIconSize} color="#ffffff" />
-              ) : (
-                <LinearGradient
-                  colors={theme.gradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.gradientWrapper}
-                >
-                  <Icon size={TAB_BAR_CONFIG.btnIconSize} color={palette.ink950} />
-                </LinearGradient>
-              )}
-            </Animated.View>
-          );
-        })}
+        {state.routes.map((route, i) => (
+          <BubbleIcon
+            key={`bubble-icon-${route.key}`}
+            index={i}
+            routeKey={route.key}
+            routeName={route.name}
+            activeIndexValue={activeIndexValue}
+            mode={mode}
+            theme={theme}
+          />
+        ))}
       </Animated.View>
 
       {/* Interactive Tabs */}
@@ -236,51 +324,17 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             }
           };
 
-          const Icon = ROUTE_ICONS[route.name];
-          const label = ROUTE_LABELS[route.name];
-
-          // Fade out and scale down regular slot elements as the bubble slides over it
-          const uasTabContent = useAnimatedStyle(() => {
-            const opacity = interpolate(
-              activeIndexValue.value,
-              [index - 0.5, index, index + 0.5],
-              [1, 0, 1],
-              'clamp'
-            );
-            const scale = interpolate(
-              activeIndexValue.value,
-              [index - 0.5, index, index + 0.5],
-              [1, 0.7, 1],
-              'clamp'
-            );
-            const translateY = interpolate(
-              activeIndexValue.value,
-              [index - 0.5, index, index + 0.5],
-              [0, 12, 0],
-              'clamp'
-            );
-            return {
-              opacity,
-              transform: [{ scale }, { translateY }],
-            };
-          });
-
           return (
-            <Pressable
+            <TabItem
               key={route.key}
+              index={index}
+              routeKey={route.key}
+              routeName={route.name}
+              isFocused={isFocused}
+              activeIndexValue={activeIndexValue}
+              theme={theme}
               onPress={onPress}
-              style={({ pressed }) => [
-                styles.tabButton,
-                { opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Animated.View style={[styles.tabContent, uasTabContent]}>
-                <Icon size={TAB_BAR_CONFIG.iconSize} color={theme.textMuted} />
-                <Text style={[styles.tabLabel, { color: theme.textMuted }]}>
-                  {label}
-                </Text>
-              </Animated.View>
-            </Pressable>
+            />
           );
         })}
       </View>

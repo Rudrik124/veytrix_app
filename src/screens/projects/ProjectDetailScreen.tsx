@@ -41,6 +41,7 @@ export function ProjectDetailScreen({ route, navigation }: Props) {
   }
 
   const handleRestore = (versionId: string) => {
+    if (!project) return;
     Alert.alert(
       "Restore Version",
       "Are you sure you want to restore this version? This will become your active draft.",
@@ -147,7 +148,7 @@ export function ProjectDetailScreen({ route, navigation }: Props) {
               <Text style={[typography.h2, { color: theme.textPrimary }]}>Version History</Text>
             </View>
 
-            {project.versionHistory.map((version) => (
+            {project.versionHistory?.map((version) => (
               <View key={version.id} style={[styles.versionRow, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}> 
                 <View style={{ flex: 1 }}>
                   <Text style={[typography.bodyMedium, { color: theme.textPrimary }]}>Version {version.versionNumber}</Text>
